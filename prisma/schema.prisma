@@ -1,0 +1,152 @@
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              String         @id @default(uuid())
+  fullName        String
+  email           String         @unique
+  password        String?        // Hashed password for CredentialsProvider (nullable for OAuth users)
+  profilePhotoURL String?
+  role            String         @default("user") // "user" | "admin" | "moderator"
+  accountStatus   String         @default("pending") // "active" | "suspended" | "pending"
+  emailVerified   Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  lastLogin       DateTime       @default(now())
+  
+  // Relations
+  profile         Profile?
+  achievements    Achievement[]
+  subscriptions   Subscription[]
+  adminLogs       AdminLog[]     @relation("AdminAction")
+  targetLogs      AdminLog[]     @relation("AdminTarget")
+  
+  // NextAuth relations
+  accounts        Account[]
+  sessions        Session[]
+}
+
+model Account {
+  id                 String  @id @default(uuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.NVarChar(Max)
+  access_token       String? @db.NVarChar(Max)
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.NVarChar(Max)
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Profile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  headline           String?
+  summary            String?  @db.NVarChar(Max)
+  yearsOfExperience  Int      @default(0)
+  industries         String?  @db.NVarChar(Max) // Array of strings
+  skills             String?  @db.NVarChar(Max) // Array of strings
+  certifications     String?  @db.NVarChar(Max) // Array of strings
+  employmentHistory  String?  @db.NVarChar(Max) // Array of strings
+  education          String?  @db.NVarChar(Max) // Array of strings
+  country            String?
+  visibility         String   @default("public") // "public" | "private"
+  verificationStatus String   @default("unverified") // "unverified" | "verified" | "rejected" | "pending"
+  profileScore       Int      @default(0)
+  updatedAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  description String   @db.NVarChar(Max)
+  year        Int
+  proofURL    String?
+  verified    Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id              String   @id @default(uuid())
+  userId          String
+  plan            String   // "free" | "pro" | "enterprise"
+  status          String   // "active" | "canceled" | "expired"
+  startDate       DateTime @default(now())
+  endDate         DateTime
+  paymentProvider String   @default("Stripe")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AdminLog {
+  id           String   @id @default(uuid())
+  adminId      String
+  action       String
+  targetUserId String
+  timestamp    DateTime @default(now())
+  remarks      String?  @db.NVarChar(Max)
+
+  admin      User @relation("AdminAction", fields: [adminId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  targetUser User @relation("AdminTarget", fields: [targetUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Application {
+  id                     String   @id @default(uuid())
+  fullName               String
+  email                  String   @unique
+  currentRole            String
+  yearsOfExperience      Int
+  linkedinUrl            String
+  expertise              String?  @db.NVarChar(Max) // Array of strings
+  interest               String
+  status                 String   @default("pending") // "pending" | "approved" | "rejected"
+  submittedAt            DateTime @default(now())
+  profileScore           Int?
+  relevanceScore         Int?
+  profileScoreFeedback   String?  @db.NVarChar(Max)
+  relevanceScoreFeedback String?  @db.NVarChar(Max)
+  assessments            String?  @db.NVarChar(Max) // Nested JSON structure
+  approvedUserId         String?
+}
+
+model HRExpertise {
+  id   String @id @default(uuid())
+  name String @unique
+}
+
+model GlobalConfig {
+  id      String @id @default("global")
+  logoUrl String
+}

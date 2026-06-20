@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root, .corporate-blue, .emerald-green, .charcoal-gray, .indigo-purple {
+    --background: 216 100% 98.4%; /* #F8FBFF */
+    --foreground: 215 28% 17%; /* #1F2937 */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 215 28% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+    --primary: 218 86% 44%; /* #0F57D0 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 100% 96%; /* #EAF5FF */
+    --secondary-foreground: 214 56% 31%; /* #234A7D */
+    --muted: 210 100% 96%;
+    --muted-foreground: 218 25% 35%; /* #42526E */
+    --accent: 210 100% 96%;
+    --accent-foreground: 218 86% 44%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 208 50% 90%; /* #D9E6F2 */
+    --input: 208 50% 90%;
+    --ring: 218 86% 44%;
+    --radius: 0.75rem;
+
+    --ghrm-primary: #0F57D0;
+    --ghrm-primary-dark: #0D47A1;
+    --ghrm-primary-light: #1E88E5;
+    --ghrm-bg: #F8FBFF;
+    --ghrm-bg-soft: #EAF5FF;
+    --ghrm-orange: #FF7A00;
+    --ghrm-green: #4CAF50;
+    --ghrm-green-soft: #66BB6A;
+    --ghrm-navy: #234A7D;
+    --ghrm-text: #1F2937;
+    --ghrm-text-secondary: #42526E;
+    --ghrm-border: #D9E6F2;
+    --ghrm-card: #FFFFFF;
+  }
+
+  .dark:root, .dark.corporate-blue, .dark.emerald-green, .dark.charcoal-gray, .dark.indigo-purple {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 218 86% 55%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 218 86% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

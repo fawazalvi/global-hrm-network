@@ -1,0 +1,588 @@
+
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Global HRM Network platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "profilePhotoURL": {
+          "type": "string",
+          "description": "URL of the user's profile photo.",
+          "format": "uri"
+        },
+        "role": {
+          "type": "string",
+          "description": "The user's role (user or moderator)."
+        },
+        "accountStatus": {
+          "type": "string",
+          "description": "The user's account status (active, suspended, or pending)."
+        },
+        "emailVerified": {
+          "type": "boolean",
+          "description": "Indicates whether the user's email address has been verified."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user account was created.",
+          "format": "date-time"
+        },
+        "lastLogin": {
+          "type": "string",
+          "description": "The user's last login.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "fullName",
+        "email",
+        "role",
+        "accountStatus",
+        "emailVerified",
+        "createdAt",
+        "lastLogin"
+      ]
+    },
+    "AdminUser": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AdminUser",
+      "type": "object",
+      "description": "Represents a platform administrator.",
+      "properties": {
+        "uid": { "type": "string", "description": "The admin's unique ID from Firebase Auth." },
+        "fullName": { "type": "string", "description": "The admin's full name." },
+        "email": { "type": "string", "format": "email", "description": "The admin's email address." },
+        "role": { "type": "string", "description": "The role, which is always 'admin'." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of when the admin was created." }
+      },
+      "required": ["uid", "fullName", "email", "role", "createdAt"]
+    },
+    "Profile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Profile",
+      "type": "object",
+      "description": "Represents an HR professional's profile.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Profile entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:1 Profile)"
+        },
+        "headline": {
+          "type": "string",
+          "description": "The profile headline."
+        },
+        "summary": {
+          "type": "string",
+          "description": "A brief summary of the profile."
+        },
+        "yearsOfExperience": {
+          "type": "number",
+          "description": "The number of years of experience."
+        },
+        "industries": {
+          "type": "array",
+          "description": "List of industries the user has worked in.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "skills": {
+          "type": "array",
+          "description": "List of skills the user possesses.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "certifications": {
+          "type": "array",
+          "description": "List of certifications the user has obtained.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "achievements": {
+          "type": "array",
+          "description": "List of achievements the user has accomplished.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "employmentHistory": {
+          "type": "array",
+          "description": "List of the user's employment history.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "education": {
+          "type": "array",
+          "description": "List of the user's education.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "country": {
+          "type": "string",
+          "description": "The user's country."
+        },
+        "visibility": {
+          "type": "string",
+          "description": "The profile's visibility (public or private)."
+        },
+        "verificationStatus": {
+          "type": "string",
+          "description": "The profile's verification status (unverified, verified, or rejected)."
+        },
+        "profileScore": {
+          "type": "number",
+          "description": "The profile's score, calculated by an AI algorithm."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "headline",
+        "summary",
+        "yearsOfExperience",
+        "country",
+        "visibility",
+        "verificationStatus",
+        "profileScore",
+        "updatedAt"
+      ]
+    },
+    "Achievement": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Achievement",
+      "type": "object",
+      "description": "Represents an achievement of an HR professional.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Achievement entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Achievement)"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the achievement."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the achievement."
+        },
+        "year": {
+          "type": "number",
+          "description": "The year the achievement was earned."
+        },
+        "proofURL": {
+          "type": "string",
+          "description": "URL of the proof of the achievement (optional).",
+          "format": "uri"
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Indicates whether the achievement has been verified."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "title",
+        "description",
+        "year",
+        "verified"
+      ]
+    },
+    "Subscription": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Subscription",
+      "type": "object",
+      "description": "Represents a user's subscription to Global HRM Network.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Subscription entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Subscription)"
+        },
+        "plan": {
+          "type": "string",
+          "description": "The subscription plan (free, pro, or enterprise)."
+        },
+        "status": {
+          "type": "string",
+          "description": "The subscription status (active, canceled, or expired)."
+        },
+        "startDate": {
+          "type": "string",
+          "description": "The subscription start date.",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The subscription end date.",
+          "format": "date-time"
+        },
+        "paymentProvider": {
+          "type": "string",
+          "description": "The payment provider used for the subscription (e.g., Stripe)."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "plan",
+        "status",
+        "startDate",
+        "endDate",
+        "paymentProvider"
+      ]
+    },
+    "AdminLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AdminLog",
+      "type": "object",
+      "description": "Represents an admin action log.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AdminLog entity."
+        },
+        "adminId": {
+          "type": "string",
+          "description": "Reference to User representing the admin who performed the action. (Relationship: User 1:N AdminLog)"
+        },
+        "action": {
+          "type": "string",
+          "description": "The action performed by the admin."
+        },
+        "targetUserId": {
+          "type": "string",
+          "description": "Reference to User representing the user targeted by the admin action. (Relationship: User 1:N AdminLog)"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp of when the action was performed.",
+          "format": "date-time"
+        },
+        "remarks": {
+          "type": "string",
+          "description": "Additional remarks or notes about the action."
+        }
+      },
+      "required": [
+        "id",
+        "adminId",
+        "action",
+        "targetUserId",
+        "timestamp"
+      ]
+    },
+    "Application": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Application",
+      "type": "object",
+      "description": "Represents an early access application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Application entity."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "The applicant's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The applicant's email address.",
+          "format": "email"
+        },
+        "currentRole": {
+          "type": "string",
+          "description": "The applicant's current job role."
+        },
+        "yearsOfExperience": {
+          "type": "number",
+          "description": "The applicant's years of HR experience."
+        },
+        "linkedinUrl": {
+          "type": "string",
+          "description": "URL of the applicant's LinkedIn profile.",
+          "format": "uri"
+        },
+        "expertise": {
+          "type": "array",
+          "description": "An array of the applicant's primary areas of HR expertise, ordered by priority.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "interest": {
+          "type": "string",
+          "description": "The applicant's primary interest in joining the network."
+        },
+        "status": {
+          "type": "string",
+          "description": "The application status (pending, approved, or rejected)."
+        },
+        "submittedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the application was submitted.",
+          "format": "date-time"
+        },
+        "profileScore": {
+            "type": "number",
+            "description": "An AI-generated score (0-100) representing the overall profile quality."
+        },
+        "relevanceScore": {
+            "type": "number",
+            "description": "An AI-generated score (0-100) on how relevant the profile is to the selected expertise."
+        },
+        "profileScoreFeedback": {
+            "type": "string",
+            "description": "The reasoning behind the profile score."
+        },
+        "relevanceScoreFeedback": {
+            "type": "string",
+            "description": "The reasoning behind the relevance score."
+        },
+        "assessments": {
+            "type": "object",
+            "description": "Contains detailed AI-driven assessments based on different HR models.",
+            "properties": {
+                "strategicLeader": {
+                    "type": "array",
+                    "items": { "$ref": "#/backend/entities/DimensionScore" }
+                },
+                "coreGeneralist": {
+                    "type": "array",
+                    "items": { "$ref": "#/backend/entities/DimensionScore" }
+                },
+                "softSkills": {
+                    "type": "array",
+                    "items": { "$ref": "#/backend/entities/DimensionScore" }
+                },
+                "academicAssessment": {
+                    "type": "array",
+                    "items": { "$ref": "#/backend/entities/DimensionScore" }
+                }
+            }
+        }
+      },
+      "required": [
+        "fullName",
+        "email",
+        "currentRole",
+        "yearsOfExperience",
+        "linkedinUrl",
+        "expertise",
+        "interest",
+        "status",
+        "submittedAt"
+      ]
+    },
+    "HRExpertise": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "HR Expertise",
+        "type": "object",
+        "description": "Represents a single area of HR expertise.",
+        "properties": {
+            "id": {
+                "type": "string",
+                "description": "Unique identifier for the expertise area."
+            },
+            "name": {
+                "type": "string",
+                "description": "The name of the expertise area (e.g., 'Talent Acquisition')."
+            }
+        },
+        "required": ["id", "name"]
+    },
+    "DimensionScore": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Dimension Score",
+        "type": "object",
+        "description": "Represents a single scored dimension within an assessment model.",
+        "properties": {
+            "dimension": { "type": "string", "description": "The name of the assessment dimension." },
+            "score": { "type": "number", "description": "The score for this dimension (0-100)." },
+            "reasoning": { "type": "string", "description": "The justification for the score." }
+        },
+        "required": ["dimension", "score", "reasoning"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous",
+      "google.com"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user data. User ID is used as the document ID. Includes core user information (fullName, email, role, accountStatus, emailVerified).",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/admins/{adminId}",
+        "definition": {
+            "entityName": "AdminUser",
+            "schema": {
+                "$ref": "#/backend/entities/AdminUser"
+            },
+            "description": "Stores admin user data. Admin ID from Auth is used as the document ID.",
+            "params": [
+                {
+                    "name": "adminId",
+                    "description": "The unique ID of the admin user."
+                }
+            ]
+        }
+      },
+      {
+        "path": "/users/{userId}/profile",
+        "definition": {
+          "entityName": "Profile",
+          "schema": {
+            "$ref": "#/backend/entities/Profile"
+          },
+          "description": "Stores HR professional profiles, associated with a specific user.  The document ID is the profileId.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/achievements/{achievementId}",
+        "definition": {
+          "entityName": "Achievement",
+          "schema": {
+            "$ref": "#/backend/entities/Achievement"
+          },
+          "description": "Stores HR professional achievements, associated with a specific user. The achievementId is the document id.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "achievementId",
+              "description": "The unique ID of the achievement."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/subscriptions/{subscriptionId}",
+        "definition": {
+          "entityName": "Subscription",
+          "schema": {
+            "$ref": "#/backend/entities/Subscription"
+          },
+          "description": "Stores user subscription data. SubscriptionId is the document ID.",
+          "params": [
+            {
+              "name": "subscriptionId",
+              "description": "The unique ID of the subscription."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/adminLogs/{logId}",
+        "definition": {
+          "entityName": "AdminLog",
+          "schema": {
+            "$ref": "#/backend/entities/AdminLog"
+          },
+          "description": "Stores admin activity logs. LogId is the document ID.",
+          "params": [
+            {
+              "name": "logId",
+              "description": "The unique ID of the admin log."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/applications/{applicationId}",
+        "definition": {
+          "entityName": "Application",
+          "schema": {
+            "$ref": "#/backend/entities/Application"
+          },
+          "description": "Stores early access applications. ApplicationId is the document ID.",
+          "params": [
+            {
+              "name": "applicationId",
+              "description": "The unique ID of the application."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/hr_expertise/{expertiseId}",
+        "definition": {
+            "entityName": "HRExpertise",
+            "schema": {
+                "$ref": "#/backend/entities/HRExpertise"
+            },
+            "description": "Stores the master list of HR expertise areas. Admins can manage this collection.",
+            "params": [
+                {
+                    "name": "expertiseId",
+                    "description": "The unique ID of the expertise area."
+                }
+            ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to facilitate a secure and scalable HR networking platform (Global HRM Network). It emphasizes authorization independence and clear access patterns to ensure robust security rules and easy debuggability. Key aspects of the design include:\n\n*   **Authorization Independence:**  Critical user attributes, especially those relevant for authorization (e.g., user role) are directly accessible at the user document level, avoiding the need for `get()` calls to other collections. For collaborative data, the 'members' map pattern is recommended, enabling role-based access without hierarchical dependencies.\n*   **Structural Segregation:** Data with different security requirements is stored in separate collections. User data is in `/users`, while admin data is in a separate `/admins` collection. User-specific profiles are stored under `/users/{userId}/profile`, while admin logs are stored separately.\n*   **Access Modeling:** The structure follows consistent patterns. User-owned data (profiles, achievements, subscriptions) is organized under the `/users/{userId}` path. Admin users are stored in their own top-level collection.\n*   **QAPs (Rules are not Filters):**  The design enables secure `list` operations by structuring data to allow rules to efficiently determine access based on path and user roles.  Public profile listing can be secured by a visibility status on the HR Profiles and Firestore rules that filters depending on that status.\n*   **Invariants:** Ownership and timestamps are explicitly managed within the document structure to ensure data integrity. The `userId` field in subcollections explicitly denotes ownership.\n*   **Managed Data:** A new `/hr_expertise` collection is added to store a configurable list of HR skills, allowing admins to maintain a consistent taxonomy for user profiles.\n\nThis structure enables simple and robust security rules, as well as supports the application's core features, including user authentication, role-based access control, HR profile management, profile verification workflow, subscription management, profile score calculation, and admin panel functionality."
+  }
+}
