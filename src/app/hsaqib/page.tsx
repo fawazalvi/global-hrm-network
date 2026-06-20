@@ -119,7 +119,7 @@ export default function HinaSaqibProfile() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Navigation / Header */}
-      <header className="px-4 lg:px-6 h-20 flex items-center border-b border-ghrm-border bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+      <header className="px-4 lg:px-6 h-20 flex items-center border-b border-ghrm-border bg-white sticky top-0 z-50 shadow-sm">
         <Link href="/" className="flex items-center justify-center">
             <img src="/logo.png" alt="Global HRM Network" className="h-14 md:h-16 w-auto object-contain" />
         </Link>
@@ -142,7 +142,7 @@ export default function HinaSaqibProfile() {
               {/* Executive Portrait */}
               <div className="relative aspect-[4/5] w-full max-w-[320px] overflow-hidden rounded-3xl border-4 border-primary/10 shadow-2xl ring-1 ring-black/5">
                 <Image 
-                  src="https://i.postimg.cc/mgj0SHps/HS.png" 
+                  src="/hs.png" 
                   alt="Hina Saqib Choudhry" 
                   fill
                   className="object-cover object-top"
@@ -397,9 +397,11 @@ export default function HinaSaqibProfile() {
       {/* Footer */}
       <footer className="bg-muted/40 border-t py-12 mt-20">
         <div className="container mx-auto px-4 text-center space-y-4">
-          <div className="flex justify-center gap-2">
-            <Icons.logo className="h-6 w-6 text-muted-foreground" />
-            <span className="font-semibold text-muted-foreground">Global HRM Network</span>
+          <div className="flex justify-center items-center gap-3">
+            <div className="bg-white p-2.5 rounded-full shadow-md border border-ghrm-border flex items-center justify-center shrink-0">
+              <Icons.logo className="h-10 w-10" />
+            </div>
+            <span className="font-bold text-xl text-ghrm-navy tracking-tight">Global HRM Network</span>
           </div>
           <p className="text-sm text-muted-foreground">
             &copy; {year} Hina Saqib Choudhry. All rights reserved.

@@ -43,7 +43,7 @@ export default function HowItWorksPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <header className="px-4 lg:px-6 h-20 flex items-center border-b border-ghrm-border bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+      <header className="px-4 lg:px-6 h-20 flex items-center border-b border-ghrm-border bg-white sticky top-0 z-50 shadow-sm">
         <Link href="/" className="flex items-center justify-center">
             <img src="/logo.png" alt="Global HRM Network" className="h-14 md:h-16 w-auto object-contain" />
         </Link>
@@ -124,9 +124,14 @@ export default function HowItWorksPage() {
       {/* Footer */}
       <footer className="bg-ghrm-primary-dark text-white py-12">
          <div className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between">
-            <div className="flex items-center gap-2">
-                <Icons.logo className="h-8 w-8" />
-                <span className="text-sm text-white/80">&copy; {year} Global HRM Network. All rights reserved.</span>
+            <div className="flex items-center gap-4">
+                <div className="bg-white p-2.5 rounded-full shadow-md flex items-center justify-center shrink-0">
+                    <Icons.logo className="h-12 w-12" />
+                </div>
+                <div className="flex flex-col">
+                    <span className="font-bold text-xl text-white tracking-tight">Global HRM Network</span>
+                    <span className="text-sm text-white/70">&copy; {year} All rights reserved.</span>
+                </div>
             </div>
             <nav className="flex gap-4 sm:gap-6 mt-4 md:mt-0 flex-wrap justify-center">
                 <Link href="/about" className="text-sm hover:underline hover:text-white transition-colors text-white/70">

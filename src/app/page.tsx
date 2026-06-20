@@ -17,7 +17,7 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="px-4 lg:px-6 h-20 flex items-center border-b border-ghrm-border bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+      <header className="px-4 lg:px-6 h-20 flex items-center border-b border-ghrm-border bg-white sticky top-0 z-50 shadow-sm">
         <Link href="/" className="flex items-center justify-center">
             <img src="/logo.png" alt="Global HRM Network" className="h-14 md:h-16 w-auto object-contain" />
         </Link>
@@ -114,9 +114,11 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Icons.logo className="h-8 w-8" />
-                <span className="font-bold text-xl tracking-tight text-white">GHRM Network</span>
+              <div className="flex items-center gap-3">
+                <div className="bg-white p-2.5 rounded-full shadow-md flex items-center justify-center shrink-0">
+                  <Icons.logo className="h-12 w-12" />
+                </div>
+                <span className="font-bold text-2xl tracking-tight text-white">Global HRM Network</span>
               </div>
               <p className="text-sm text-white/80 leading-relaxed">
                 Elevating the Human Resources profession through trust and transparency.
