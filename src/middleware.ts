@@ -7,13 +7,22 @@ export default auth((req) => {
   const userRole = (req.auth?.user as any)?.role
 
   // Paths
-  const isAdminPath = nextUrl.pathname.startsWith("/admin")
+  const isAdminLoginPath = nextUrl.pathname === "/admin/login"
+  const isAdminPath = nextUrl.pathname.startsWith("/admin") && !isAdminLoginPath
   const isProtectedPath = nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/profile")
   const isAuthPath = nextUrl.pathname.startsWith("/login") || nextUrl.pathname.startsWith("/signup")
 
+  if (isAdminLoginPath) {
+    if (isLoggedIn && userRole === "admin") {
+      return NextResponse.redirect(new URL("/admin/dashboard", nextUrl))
+    }
+    return NextResponse.next()
+  }
+
   if (isAuthPath) {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/dashboard", nextUrl))
+      const target = userRole === "admin" ? "/admin/dashboard" : "/dashboard"
+      return NextResponse.redirect(new URL(target, nextUrl))
     }
     return NextResponse.next()
   }

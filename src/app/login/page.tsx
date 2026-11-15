@@ -25,7 +25,8 @@ export default function LoginPage() {
   // If the user is already logged in, redirect them.
   useEffect(() => {
     if (!isUserLoading && session) {
-        router.push('/dashboard');
+        const role = (session.user as any)?.role;
+        router.push(role === 'admin' ? '/admin/dashboard' : '/dashboard');
     }
   }, [session, isUserLoading, router]);
 
@@ -51,7 +52,10 @@ export default function LoginPage() {
           title: 'Signed In Successfully',
           description: 'Welcome back!',
         });
-        router.push('/dashboard');
+        const sessionRes = await fetch('/api/auth/session');
+        const sessionData = await sessionRes.json();
+        const role = sessionData?.user?.role;
+        window.location.href = role === 'admin' ? '/admin/dashboard' : '/dashboard';
       }
     } catch (error: any) {
       setIsLoading(false);
