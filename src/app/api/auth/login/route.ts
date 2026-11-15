@@ -74,8 +74,11 @@ export async function POST(req: Request) {
     };
 
     const token = await createSessionToken(sessionUser);
-    const forwardedProto = req.headers.get('x-forwarded-proto');
-    const isHttps = forwardedProto === 'https' || req.url.startsWith('https://');
+    const origin = req.headers.get('origin') || '';
+    const forwardedProto = req.headers.get('x-forwarded-proto') || '';
+    const isHttps =
+      origin.startsWith('https://') ||
+      (!origin.startsWith('http://') && forwardedProto === 'https');
 
     const response = NextResponse.json({
       success: true,
@@ -85,7 +88,7 @@ export async function POST(req: Request) {
     response.cookies.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production' && isHttps,
+      secure: isHttps,
       path: '/',
       maxAge: SESSION_MAX_AGE_SECONDS,
     });
