@@ -316,7 +316,7 @@ function VerifySurveyContent() {
     : '#';
 
   return (
-    <div className="min-h-screen flex flex-col bg-ghrm-bg/40">
+    <div className="force-light min-h-screen flex flex-col bg-ghrm-bg/40 text-ghrm-text">
       <header className="px-4 lg:px-6 h-20 flex items-center border-b border-ghrm-border bg-white sticky top-0 z-50 shadow-sm">
         <Link href="/" className="flex items-center justify-center">
           <img src="/logo.png" alt="Global HRM Network" className="h-14 md:h-16 w-auto object-contain" />
@@ -809,7 +809,7 @@ export default function VerifySurveyPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="force-light min-h-screen flex items-center justify-center bg-background text-foreground">
           <Loader2 className="h-8 w-8 animate-spin text-ghrm-primary" />
         </div>
       }

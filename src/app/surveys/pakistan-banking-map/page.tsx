@@ -418,7 +418,7 @@ function PakistanBankingMapSurveyContent() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <div className="force-light flex flex-col min-h-screen bg-ghrm-bg text-ghrm-text">
       {/* Header */}
       <header className="px-4 lg:px-6 h-20 flex items-center border-b border-ghrm-border bg-white sticky top-0 z-50 shadow-sm">
         <Link href="/" className="flex items-center justify-center">

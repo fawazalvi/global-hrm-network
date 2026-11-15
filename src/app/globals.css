@@ -61,6 +61,27 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 218 86% 55%;
   }
+
+  .force-light {
+    color-scheme: light;
+    --background: 0 0% 100%;
+    --foreground: 215 28% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+    --primary: 218 86% 44%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 100% 96%;
+    --secondary-foreground: 214 56% 31%;
+    --muted: 210 100% 96%;
+    --muted-foreground: 218 25% 35%;
+    --accent: 210 100% 96%;
+    --accent-foreground: 218 86% 44%;
+    --border: 208 50% 90%;
+    --input: 208 50% 90%;
+    --ring: 218 86% 44%;
+  }
 }
 
 @layer base {
