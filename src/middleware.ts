@@ -13,17 +13,10 @@ export default auth((req) => {
   const isAuthPath = nextUrl.pathname.startsWith("/login") || nextUrl.pathname.startsWith("/signup")
 
   if (isAdminLoginPath) {
-    if (isLoggedIn && userRole === "admin") {
-      return NextResponse.redirect(new URL("/admin/dashboard", nextUrl))
-    }
     return NextResponse.next()
   }
 
   if (isAuthPath) {
-    if (isLoggedIn) {
-      const target = userRole === "admin" ? "/admin/dashboard" : "/dashboard"
-      return NextResponse.redirect(new URL(target, nextUrl))
-    }
     return NextResponse.next()
   }
 

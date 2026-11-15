@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/frontend/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/frontend/components/ui/card';
 import { Input } from '@/frontend/components/ui/input';
 import { Label } from '@/frontend/components/ui/label';
 import { Icons } from '@/frontend/components/icons';
 import { useToast } from '@/frontend/hooks/use-toast';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -17,18 +17,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { data: session, status } = useSession();
-  const isUserLoading = status === 'loading';
   const router = useRouter();
   const { toast } = useToast();
-  
-  // If the user is already logged in, redirect them.
-  useEffect(() => {
-    if (!isUserLoading && session) {
-        const role = (session.user as any)?.role;
-        router.push(role === 'admin' ? '/admin/dashboard' : '/dashboard');
-    }
-  }, [session, isUserLoading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,17 +71,6 @@ export default function LoginPage() {
     }
   };
   
-  if (isUserLoading || session) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-         <div className="flex flex-col items-center gap-2">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <p className="text-muted-foreground">Loading session...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="mx-auto max-w-sm w-full">

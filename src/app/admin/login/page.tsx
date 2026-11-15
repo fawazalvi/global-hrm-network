@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
           title: 'Admin Session Started',
           description: 'Loading administration console...',
         });
-        router.refresh();
+        window.location.href = '/admin/dashboard';
       }
     } catch (error: any) {
       toast({
