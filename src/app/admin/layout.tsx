@@ -6,12 +6,9 @@ import AdminPage from "@/frontend/components/layout/admin-page";
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const session = await auth();
 
-  // Enforce administrative session check
-  if (!session || (session.user as any).role !== 'admin') {
-    redirect('/login');
+  if (!session || session.user.role !== "admin") {
+    redirect("/login");
   }
 
-  return (
-    <AdminPage>{children}</AdminPage>
-  );
+  return <AdminPage>{children}</AdminPage>;
 }

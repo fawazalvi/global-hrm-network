@@ -3,7 +3,6 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/frontend/components/ui/toaster';
 import { ThemeProvider } from '@/frontend/components/theme-provider';
-import { SessionProvider } from 'next-auth/react';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -20,17 +19,15 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans h-full antialiased`}>
-        <SessionProvider>
-          <ThemeProvider
-              attribute="class"
-              defaultTheme="emerald-green"
-              enableSystem={false}
-              disableTransitionOnChange
-          >
-              {children}
-              <Toaster />
-          </ThemeProvider>
-        </SessionProvider>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="emerald-green"
+            enableSystem={false}
+            disableTransitionOnChange
+        >
+            {children}
+            <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

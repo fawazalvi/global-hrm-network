@@ -1,30 +1,23 @@
-import { auth } from "@/backend/auth"
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
+import { SESSION_COOKIE_NAME, verifySessionToken } from "@/backend/session"
 
-export default auth((req) => {
+export async function middleware(req: NextRequest) {
   const { nextUrl } = req
-  const isLoggedIn = !!req.auth
-  const userRole = (req.auth?.user as any)?.role
+  const token = req.cookies.get(SESSION_COOKIE_NAME)?.value
+  const user = await verifySessionToken(token)
+  const isLoggedIn = !!user
+  const userRole = user?.role
 
-  // Paths
-  const isAdminLoginPath = nextUrl.pathname === "/admin/login"
-  const isAdminPath = nextUrl.pathname.startsWith("/admin") && !isAdminLoginPath
-  const isProtectedPath = nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/profile")
-  const isAuthPath = nextUrl.pathname.startsWith("/login") || nextUrl.pathname.startsWith("/signup")
-
-  if (isAdminLoginPath) {
-    return NextResponse.next()
+  if (nextUrl.pathname === "/admin/login") {
+    return NextResponse.redirect(new URL("/login", nextUrl))
   }
 
-  if (isAuthPath) {
-    return NextResponse.next()
-  }
+  const isAdminPath = nextUrl.pathname.startsWith("/admin")
+  const isProtectedPath =
+    nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/profile")
 
-  if (isProtectedPath) {
-    if (!isLoggedIn) {
-      return NextResponse.redirect(new URL("/login", nextUrl))
-    }
-    return NextResponse.next()
+  if (isProtectedPath && !isLoggedIn) {
+    return NextResponse.redirect(new URL("/login", nextUrl))
   }
 
   if (isAdminPath) {
@@ -32,14 +25,12 @@ export default auth((req) => {
       return NextResponse.redirect(new URL("/login", nextUrl))
     }
     if (userRole !== "admin") {
-      // Not an admin, redirect to user dashboard
       return NextResponse.redirect(new URL("/dashboard", nextUrl))
     }
-    return NextResponse.next()
   }
 
   return NextResponse.next()
-})
+}
 
 export const config = {
   matcher: ["/dashboard/:path*", "/profile/:path*", "/admin/:path*", "/login", "/signup"],
