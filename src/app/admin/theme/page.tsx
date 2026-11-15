@@ -1,6 +1,8 @@
 import ThemeManagementPage from "@/frontend/components/admin/theme-management";
 import { db } from "@/backend/db";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ThemePage() {
     let logoUrl: string | null = null;
     try {

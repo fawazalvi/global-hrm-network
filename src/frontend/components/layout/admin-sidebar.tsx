@@ -14,6 +14,7 @@ import {
   FileText,
   UserCog,
   Mail,
+  SlidersHorizontal,
 } from "lucide-react";
 import { usePathname } from 'next/navigation';
 import { Badge } from "@/frontend/components/ui/badge";
@@ -65,6 +66,7 @@ export default function AdminSidebar({ logoUrl }: AdminSidebarProps) {
     { href: "#", icon: Star, label: "Subscriptions" },
     { href: "/admin/theme", icon: Palette, label: "Theme" },
     { href: "/admin/test-email", icon: Mail, label: "Test Email" },
+    { href: "/admin/survey-settings/choices", icon: SlidersHorizontal, label: "Survey Settings" },
     { href: "#", icon: Settings, label: "System Settings" },
   ];
 

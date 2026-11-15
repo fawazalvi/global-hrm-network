@@ -1,6 +1,5 @@
-// 3️⃣ Core Data Models (Firestore)
+// Core Data Models
 
-import { Timestamp } from "firebase/firestore";
 
 // 🔹 Users Collection
 // users/{userId}
@@ -119,7 +118,7 @@ export type AdminUser = {
   fullName: string;
   email: string;
   role: 'admin';
-  createdAt: Timestamp; 
+  createdAt: Date | string; 
 };
 
 // Global Configuration

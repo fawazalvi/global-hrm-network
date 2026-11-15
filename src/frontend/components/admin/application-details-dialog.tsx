@@ -13,7 +13,7 @@ import { Button } from '@/frontend/components/ui/button';
 import { Label } from '@/frontend/components/ui/label';
 import { Badge } from '@/frontend/components/ui/badge';
 import type { Application, DimensionScore } from '@/lib/types';
-import type { Timestamp } from 'firebase/firestore';
+
 import { Loader2, Wand2, ArrowUpRight } from 'lucide-react';
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/frontend/components/ui/tabs';
@@ -39,7 +39,7 @@ const chartConfig = {
 };
 
 type ApplicationWithTimestamp = Omit<Application, 'submittedAt'> & {
-  submittedAt: Timestamp | null;
+  submittedAt: Date | string | null;
 };
 
 interface ApplicationDetailsDialogProps {
@@ -165,7 +165,7 @@ export default function ApplicationDetailsDialog({
           </div>
           <div className="grid grid-cols-3 items-center gap-4">
             <Label className="text-right">Submitted</Label>
-            <p className="col-span-2">{application.submittedAt?.toDate().toLocaleString() || 'N/A'}</p>
+            <p className="col-span-2">{application.submittedAt ? new Date(application.submittedAt).toLocaleString() : 'N/A'}</p>
           </div>
           <div className="grid grid-cols-3 items-center gap-4">
             <Label className="text-right">Current Role</Label>
