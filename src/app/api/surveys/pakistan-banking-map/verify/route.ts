@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
-import { isDatabaseUnavailableError } from '@/backend/db';
+import { isDatabaseUnavailableError, db } from '@/backend/db';
 import { attachReferralSessionCookie } from '@/backend/survey-referral-session';
 import {
   PAKISTAN_BANKING_MAP_CAMPAIGN_SLUG,
@@ -8,6 +8,7 @@ import {
   verifySurveySubmissionToken,
 } from '@/backend/survey-service';
 import { SurveyVerifyTokenSchema } from '@/backend/survey-validation';
+import { resolveSiteOrigin, sendParticipationConfirmationEmail } from '@/backend/survey-email';
 
 export async function POST(req: Request) {
   try {
@@ -18,6 +19,24 @@ export async function POST(req: Request) {
 
     const { token } = SurveyVerifyTokenSchema.parse(body);
     const result = await verifySurveySubmissionToken(token);
+
+    // Dispatch participation confirmation via centralized email service
+    const sub = await db.surveySubmission.findUnique({
+      where: { id: result.submissionId },
+      select: { officialEmail: true, campaignId: true, campaign: { select: { title: true } } },
+    });
+    if (sub?.officialEmail) {
+      const origin = resolveSiteOrigin(req);
+      await sendParticipationConfirmationEmail({
+        toEmail: sub.officialEmail,
+        preferredName: result.preferredName,
+        submissionId: result.submissionId,
+        participantId: result.participantId,
+        campaignId: sub.campaignId,
+        campaignTitle: sub.campaign.title,
+        confirmationUrl: `${origin}/surveys/pakistan-banking-map`,
+      }).catch((err) => console.error('Confirmation email dispatch error:', err));
+    }
 
     const response = NextResponse.json({
       success: true,

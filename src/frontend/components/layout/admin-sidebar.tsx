@@ -66,8 +66,9 @@ export default function AdminSidebar({ logoUrl }: AdminSidebarProps) {
     { href: "#", icon: Star, label: "Subscriptions" },
     { href: "/admin/theme", icon: Palette, label: "Theme" },
     { href: "/admin/test-email", icon: Mail, label: "Test Email" },
+    { href: "/admin/communications/templates", icon: FileText, label: "Email Templates" },
     { href: "/admin/survey-settings/choices", icon: SlidersHorizontal, label: "Survey Settings" },
-    { href: "#", icon: Settings, label: "System Settings" },
+    { href: "/admin/settings/email", icon: Settings, label: "Email Settings" },
   ];
 
   const isLinkActive = (href: string) => {

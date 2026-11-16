@@ -558,3 +558,240 @@ model EmailSuppression {
   source          String?
   suppressedAt    DateTime @default(now())
 }
+
+model EmailConfig {
+  id                      String    @id @default(uuid())
+  status                  String    @default("draft") // "draft" | "active" | "archived"
+  version                 Int       @default(1)
+
+  // Outgoing SMTP
+  smtpEnabled             Boolean   @default(false)
+  smtpHost                String?
+  smtpPort                Int       @default(587)
+  smtpSecurity            String    @default("starttls") // "implicit_tls" | "starttls" | "none_dev_only"
+  smtpAuthEnabled         Boolean   @default(true)
+  smtpUsername            String?
+  smtpPasswordEncrypted   String?   @db.Text
+  smtpConnectionTimeoutMs Int       @default(10000)
+  smtpRateLimitPerMinute  Int       @default(30)
+  smtpMaxRetries          Int       @default(3)
+
+  // Sender identity & routing
+  fromDisplayName         String    @default("Global HRM Network")
+  fromEmail               String?
+  replyToEmail            String?
+  supportEmail            String?
+  footerText              String?   @db.Text
+  websiteUrl              String?
+  senderOverridesJson     String?   @db.Text
+
+  // Incoming IMAP
+  imapEnabled             Boolean   @default(false)
+  imapHost                String?
+  imapPort                Int       @default(993)
+  imapSecurity            String    @default("implicit_tls") // "implicit_tls" | "starttls"
+  imapUsername            String?
+  imapPasswordEncrypted   String?   @db.Text
+  imapFolder              String    @default("INBOX")
+  imapPollingIntervalSec  Int       @default(120)
+  imapInitialSyncMode     String    @default("after_activation") // "after_activation" | "last_7_days" | "last_30_days"
+  imapRetentionDays       Int       @default(90)
+  imapActivatedAt         DateTime?
+
+  // Test verification & activation metadata
+  lastSmtpTestAt          DateTime?
+  lastSmtpTestSuccess     Boolean?
+  lastSmtpTestMessage     String?   @db.Text
+  lastSmtpTestedHash      String?
+  lastImapTestAt          DateTime?
+  lastImapTestSuccess     Boolean?
+  lastImapTestMessage     String?   @db.Text
+  lastImapTestedHash      String?
+  activatedAt             DateTime?
+  activatedByUserId       String?
+  updatedByUserId         String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  auditLogs               EmailConfigAuditLog[]
+
+  @@index([status, version])
+}
+
+model EmailConfigAuditLog {
+  id          String   @id @default(uuid())
+  configId    String?
+  actorUserId String?
+  actorEmail  String?
+  action      String   // "draft_saved" | "smtp_password_replaced" | "smtp_password_removed" | "imap_password_replaced" | "imap_password_removed" | "smtp_tested" | "imap_tested" | "test_email_sent" | "activated" | "rolled_back"
+  summary     String
+  detailsJson String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  config EmailConfig? @relation(fields: [configId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([configId])
+}
+
+model EmailThemeConfig {
+  id                 String    @id @default(uuid())
+  status             String    @default("draft") // "draft" | "published" | "archived"
+  version            Int       @default(1)
+  logoPath           String    @default("/email-assets/ghrm-email-logo.png")
+  bannerPath         String    @default("/email-assets/ghrm-community-banner.jpg")
+  primaryColor       String    @default("#0868B5")
+  deepBlueColor      String    @default("#123B70")
+  orangeAccent       String    @default("#F58220")
+  greenAccent        String    @default("#8DBB32")
+  paleBgColor        String    @default("#EFF6FC")
+  bodyTextColor      String    @default("#263445")
+  secondaryTextColor String    @default("#5C6B7A")
+  surfaceColor       String    @default("#FFFFFF")
+  headerStyle        String    @default("light_logo_ribbon")
+  footerStyle        String    @default("corporate_ribbon")
+  senderDisplayName  String    @default("Global HRM Network")
+  supportEmail       String?
+  websiteUrl         String    @default("https://www.global-hrm.net")
+  tagline            String    @default("Connecting HR Leaders Worldwide")
+  footerTagline      String    @default("Empowering HR Professionals to Connect, Learn & Grow Globally.")
+  socialLinksJson    String    @default("[]") @db.Text
+  updatedByUserId    String?
+  updatedByEmail     String?
+  publishedAt        DateTime?
+  publishedByUserId  String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([status, version])
+}
+
+model EmailTemplate {
+  id                   String    @id @default(uuid())
+  emailType            String    @unique
+  name                 String
+  description          String
+  classification       String    @default("transactional") // "transactional" | "community"
+  variant              String    @default("transactional") // "transactional" | "community"
+  status               String    @default("published") // "draft" | "published"
+  version              Int       @default(1)
+  subject              String
+  preheader            String    @default("")
+  eyebrow              String?
+  heading              String
+  greeting             String    @default("Hello {{preferred_name}},")
+  bodyHtml             String    @db.Text
+  bodyText             String    @db.Text
+  infoPanelTitle       String?
+  infoPanelBody        String?   @db.Text
+  footerText           String    @db.Text
+  ctaLabel             String?
+  ctaUrlTemplate       String?
+  bannerKey            String?
+  requiredPlaceholders String    @db.Text // JSON array of required placeholder keys
+  isCustomized         Boolean   @default(false)
+  updatedByUserId      String?
+  updatedByEmail       String?
+  publishedAt          DateTime?
+  publishedByUserId    String?
+  publishedByEmail     String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  versions             EmailTemplateVersion[]
+}
+
+model EmailTemplateVersion {
+  id             String   @id @default(uuid())
+  templateId     String
+  emailType      String
+  version        Int
+  status         String   @default("published") // "published" | "archived"
+  snapshotJson   String   @db.Text
+  changedByUserId String?
+  changedByEmail String?
+  createdAt      DateTime @default(now())
+
+  template EmailTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId, version])
+  @@index([emailType, version])
+}
+
+model EmailOutbox {
+  id                    String    @id @default(uuid())
+  businessKey           String    @unique
+  emailType             String
+  templateVersion       Int?
+  campaignId            String?
+  participantId         String?
+  recipientEmail        String
+  normalizedRecipient   String
+  recipientName         String?
+  fromAddress           String
+  replyToAddress        String?
+  subject               String
+  htmlBody              String?   @db.Text
+  textBody              String?   @db.Text
+  containsSensitiveLink Boolean   @default(false)
+  payloadExpiresAt      DateTime?
+  status                String    @default("queued") // "queued" | "processing" | "accepted_by_smtp" | "temporarily_failed" | "permanently_failed" | "bounced" | "suppressed" | "delivered"
+  attemptCount          Int       @default(0)
+  maxAttempts           Int       @default(3)
+  nextAttemptAt         DateTime  @default(now())
+  lockedAt              DateTime?
+  lockedBy              String?
+  messageId             String?   @unique
+  smtpResponse          String?   @db.Text
+  lastError             String?   @db.Text
+  sentAt                DateTime?
+  deliveredAt           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([emailType, createdAt])
+  @@index([normalizedRecipient])
+  @@index([campaignId])
+}
+
+model ImapMailboxCursor {
+  id               String    @id @default(uuid())
+  mailboxKey       String    @unique
+  folder           String
+  uidValidity      BigInt?
+  lastProcessedUid Int       @default(0)
+  lastPolledAt     DateTime?
+  lastError        String?   @db.Text
+  updatedAt        DateTime  @updatedAt
+}
+
+model InboundEmailMessage {
+  id                     String   @id @default(uuid())
+  mailboxKey             String
+  folder                 String
+  uidValidity            BigInt
+  uid                    Int
+  messageId              String?
+  inReplyTo              String?
+  referencesHeader       String?  @db.Text
+  fromAddress            String?
+  fromName               String?
+  toAddress              String?
+  subject                String?
+  receivedAt             DateTime
+  processingStatus       String   @default("received") // "received" | "correlated" | "dsn_bounce_correlated" | "ignored" | "error"
+  textPreview            String?  @db.Text
+  sanitizedHtml          String?  @db.Text
+  attachmentMetadataJson String?  @db.Text
+  sizeBytes              Int      @default(0)
+  relatedOutboxId        String?
+  relatedParticipantId   String?
+  createdAt              DateTime @default(now())
+
+  @@unique([mailboxKey, folder, uidValidity, uid])
+  @@index([receivedAt])
+  @@index([messageId])
+  @@index([inReplyTo])
+  @@index([relatedOutboxId])
+}

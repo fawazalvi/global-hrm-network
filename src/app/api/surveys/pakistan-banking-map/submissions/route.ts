@@ -8,6 +8,7 @@ import {
   SurveyDomainError,
 } from '@/backend/survey-service';
 import { SurveySubmissionInputSchema } from '@/backend/survey-validation';
+import { resolveSiteOrigin, sendSurveyVerificationEmail } from '@/backend/survey-email';
 
 export async function POST(req: Request) {
   try {
@@ -28,6 +29,17 @@ export async function POST(req: Request) {
       ipHash
     );
 
+    const origin = resolveSiteOrigin(req);
+    const verificationUrl = `${origin}/surveys/pakistan-banking-map/verify?token=${encodeURIComponent(result.rawVerificationToken)}`;
+
+    const emailResult = await sendSurveyVerificationEmail({
+      toEmail: validated.officialEmail,
+      preferredName: validated.preferredName,
+      submissionId: result.submissionId,
+      verificationUrl,
+      expiresAt: new Date(result.verificationExpiresAt),
+    });
+
     // Note: rawVerificationToken is intentionally omitted from HTTP response;
     // it is intended for server-side verification email dispatch.
     return NextResponse.json(
@@ -36,6 +48,8 @@ export async function POST(req: Request) {
         submissionId: result.submissionId,
         status: result.status,
         verificationExpiresAt: result.verificationExpiresAt,
+        emailDispatched: emailResult.success,
+        emailStatus: emailResult.status,
       },
       { status: 201 }
     );

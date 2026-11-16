@@ -128,26 +128,19 @@ export async function scrapeLinkedInProfileAction(input: LinkedInProfileInput) {
 
 export async function sendEmailAction(input: { to: string; from: string; subject: string; body: string; }) {
     try {
-        const keyFilePath = path.join(process.cwd(), 'gmail.json');
-        const keyFileContent = await fs.readFile(keyFilePath, 'utf8');
-        const serviceAccountKey = JSON.parse(keyFileContent);
-
-        if (!serviceAccountKey.client_email || !serviceAccountKey.private_key) {
-            throw new Error("Service account credentials are not configured correctly in gmail.json.");
+        const session = await auth();
+        if (!session || session.user.role !== 'admin') {
+            return { success: false, message: "Unauthorized" };
         }
-        
-        const sendEmailInput: SendEmailInput = { 
-            ...input,
-            clientEmail: serviceAccountKey.client_email,
-            privateKey: serviceAccountKey.private_key,
-        };
-        
-        const result = await sendEmail(sendEmailInput);
-
-        if (!result.success) {
-            throw new Error(result.message);
+        const { getActiveEmailConfig, sendTestEmailUsingConfig } = await import("@/backend/email/service");
+        const active = await getActiveEmailConfig();
+        if (!active || !active.smtpEnabled) {
+            return {
+                success: false,
+                message: "Outgoing email is not enabled or configured. Please configure Admin → Settings → Email.",
+            };
         }
-        return result;
+        return await sendTestEmailUsingConfig(active, input.to);
     } catch (error: any) {
         console.error("Error sending email:", error);
         return {
