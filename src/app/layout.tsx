@@ -21,7 +21,8 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans h-full antialiased`}>
         <ThemeProvider
             attribute="class"
-            defaultTheme="emerald-green"
+            defaultTheme="corporate-blue"
+            themes={['corporate-blue', 'emerald-green', 'charcoal-gray', 'indigo-purple', 'dark', 'light']}
             enableSystem={false}
             disableTransitionOnChange
         >

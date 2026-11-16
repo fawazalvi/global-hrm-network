@@ -189,19 +189,11 @@ export default function ThemeManagementPage({ initialLogoUrl }: ThemeManagementP
   };
 
   const handleThemeChange = (themeName: ThemeName) => {
-    setActiveTheme(themeName);
-    const themeColors = themes[themeName];
     const root = document.documentElement;
-    root.style.setProperty("--primary", themeColors.primary);
-    root.style.setProperty("--secondary", themeColors.secondary);
-    root.style.setProperty("--background", themeColors.background);
-
-    const [hP, sP, lP] = themeColors.primary.split(" ").map(parseFloat);
-    const [hS, sS, lS] = themeColors.secondary.split(" ").map(parseFloat);
-    const [hB, sB, lB] = themeColors.background.split(" ").map(parseFloat);
-    setPrimaryColor(hslToHex(hP, sP, lP));
-    setAccentColor(hslToHex(hS, sS, lS));
-    setBackgroundColor(hslToHex(hB, sB, lB));
+    root.style.removeProperty("--primary");
+    root.style.removeProperty("--secondary");
+    root.style.removeProperty("--background");
+    setActiveTheme(themeName);
   }
 
   const handleColorChange = (colorType: 'primary' | 'accent' | 'background', value: string) => {
@@ -272,7 +264,7 @@ export default function ThemeManagementPage({ initialLogoUrl }: ThemeManagementP
                 <div className="space-y-2">
                     <Label>Color Mode</Label>
                     <div className="flex items-center space-x-2">
-                    <Switch id="dark-mode-switch" checked={isDarkMode} onCheckedChange={(checked) => setActiveTheme(checked ? 'dark' : 'light')} />
+                    <Switch id="dark-mode-switch" checked={isDarkMode} onCheckedChange={(checked) => setActiveTheme(checked ? 'dark' : 'corporate-blue')} />
                     <Label htmlFor="dark-mode-switch">Enable Dark Mode</Label>
                     </div>
                     <p className="text-sm text-muted-foreground">

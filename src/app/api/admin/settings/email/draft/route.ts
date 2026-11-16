@@ -220,9 +220,13 @@ export async function PUT(req: Request) {
     });
   } catch (error: any) {
     if (error instanceof ZodError) {
+      const firstIssue = error.issues[0];
+      const fieldMsg = firstIssue
+        ? `${firstIssue.path.join('.') || 'field'}: ${firstIssue.message}`
+        : 'Validation failed.';
       return NextResponse.json(
         {
-          error: 'Validation failed.',
+          error: `Validation failed (${fieldMsg})`,
           details: error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
         },
         { status: 400 }
@@ -232,6 +236,18 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     console.error('Error saving draft email settings:', error);
-    return NextResponse.json({ error: 'Failed to save draft email settings.' }, { status: 500 });
+    if (error?.code === 'P2021' || error?.code === 'P2022') {
+      return NextResponse.json(
+        {
+          error:
+            'Email database tables are not migrated yet on PostgreSQL. Run "npx --yes prisma@6.19.3 migrate deploy" in your Coolify container terminal.',
+        },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json(
+      { error: `Failed to save draft email settings.${error?.code ? ` (${error.code})` : ''}` },
+      { status: 500 }
+    );
   }
 }
