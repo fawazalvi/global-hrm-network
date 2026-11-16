@@ -6,6 +6,7 @@ import {
   Loader2,
   MailPlus,
   RefreshCw,
+  RotateCw,
   Send,
   Users,
 } from 'lucide-react';
@@ -49,6 +50,8 @@ export default function SendSurveyInviteAdminPage() {
   const [bulkText, setBulkText] = useState('');
 
   const [sending, setSending] = useState(false);
+  const [allowResend, setAllowResend] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
   const [dispatchResults, setDispatchResults] = useState<any[]>([]);
   const [recentInvites, setRecentInvites] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
@@ -124,7 +127,7 @@ export default function SendSurveyInviteAdminPage() {
       const res = await fetch('/api/admin/surveys/pakistan-banking-map/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ templateType, contacts }),
+        body: JSON.stringify({ templateType, allowResend, contacts }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send survey invitations.');
@@ -150,6 +153,46 @@ export default function SendSurveyInviteAdminPage() {
       });
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleResendRow = async (inv: any) => {
+    setResendingId(inv.id);
+    try {
+      const res = await fetch('/api/admin/surveys/pakistan-banking-map/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateType:
+            inv.emailType === 'survey_invitation'
+              ? 'survey_invitation'
+              : 'pakistan_launch_invitation',
+          allowResend: true,
+          contacts: [
+            {
+              email: inv.recipientEmail,
+              name: inv.recipientName || '',
+            },
+          ],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to resend invitation.');
+      const first = data.results?.[0];
+      toast({
+        variant: first?.success ? 'default' : 'destructive',
+        title: first?.success ? 'Invitation Resent' : `Resend: ${first?.status || 'Failed'}`,
+        description: first?.message || 'Processed resend request.',
+      });
+      await loadHistory();
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Resend Failed',
+        description: err.message,
+      });
+    } finally {
+      setResendingId(null);
     }
   };
 
@@ -255,6 +298,16 @@ export default function SendSurveyInviteAdminPage() {
               </TabsContent>
             </Tabs>
 
+            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
+              <input
+                type="checkbox"
+                checked={allowResend}
+                onChange={(e) => setAllowResend(e.target.checked)}
+                className="h-4 w-4 rounded border-input"
+              />
+              Allow resending to previously invited leads (still skips suppressed or already-verified contacts)
+            </label>
+
             {dispatchResults.length > 0 && (
               <div className="rounded-lg border p-3 bg-muted/20 space-y-2">
                 <p className="text-xs font-semibold flex items-center gap-1.5">
@@ -312,12 +365,13 @@ export default function SendSurveyInviteAdminPage() {
                 <TableHead>Template</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Details</TableHead>
+                <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {recentInvites.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground">
                     No lead invitations sent yet.
                   </TableCell>
                 </TableRow>
@@ -349,6 +403,21 @@ export default function SendSurveyInviteAdminPage() {
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-[260px] truncate">
                       {inv.lastError || inv.smtpResponse || '—'}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={resendingId === inv.id}
+                        onClick={() => handleResendRow(inv)}
+                      >
+                        {resendingId === inv.id ? (
+                          <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <RotateCw className="mr-1 h-3.5 w-3.5" />
+                        )}
+                        Resend
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

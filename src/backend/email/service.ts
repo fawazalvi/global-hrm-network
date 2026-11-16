@@ -532,36 +532,63 @@ export async function resolveTemplateForType(emailType: ManagedEmailType) {
   const def = DEFAULT_EMAIL_TEMPLATES[emailType];
 
   if (saved) {
-    if (saved.status !== 'published') {
+    if (saved.status === 'published') {
       return {
-        published: false as const,
+        published: true as const,
         version: saved.version,
         requiredPlaceholders: def.requiredPlaceholders,
+        template: {
+          variant: (saved.variant as 'transactional' | 'community') || def.variant,
+          subject: saved.subject,
+          preheader: saved.preheader || def.preheader,
+          eyebrow: saved.eyebrow,
+          heading: saved.heading,
+          greeting: saved.greeting || def.greeting,
+          bodyHtml: saved.bodyHtml,
+          bodyText: saved.bodyText,
+          infoPanelTitle: saved.infoPanelTitle,
+          infoPanelBody: saved.infoPanelBody,
+          footerText: saved.footerText,
+          ctaLabel: saved.ctaLabel || def.ctaLabel,
+          ctaUrlTemplate: saved.ctaUrlTemplate || def.ctaUrlTemplate,
+          bannerKey: saved.bannerKey,
+          securityOrHelpNote: def.securityOrHelpNote,
+          unsubscribeLabel: def.unsubscribeLabel,
+        },
       };
     }
-    return {
-      published: true as const,
-      version: saved.version,
-      requiredPlaceholders: def.requiredPlaceholders,
-      template: {
-        variant: (saved.variant as 'transactional' | 'community') || def.variant,
-        subject: saved.subject,
-        preheader: saved.preheader || def.preheader,
-        eyebrow: saved.eyebrow,
-        heading: saved.heading,
-        greeting: saved.greeting || def.greeting,
-        bodyHtml: saved.bodyHtml,
-        bodyText: saved.bodyText,
-        infoPanelTitle: saved.infoPanelTitle,
-        infoPanelBody: saved.infoPanelBody,
-        footerText: saved.footerText,
-        ctaLabel: saved.ctaLabel || def.ctaLabel,
-        ctaUrlTemplate: saved.ctaUrlTemplate || def.ctaUrlTemplate,
-        bannerKey: saved.bannerKey,
-        securityOrHelpNote: def.securityOrHelpNote,
-        unsubscribeLabel: def.unsubscribeLabel,
-      },
-    };
+
+    // Saved row is a draft: fall back to latest published version snapshot if one exists
+    const lastPublished = await db.emailTemplateVersion.findFirst({
+      where: { emailType, status: 'published' },
+      orderBy: { version: 'desc' },
+    });
+    if (lastPublished) {
+      const snap = JSON.parse(lastPublished.snapshotJson);
+      return {
+        published: true as const,
+        version: lastPublished.version,
+        requiredPlaceholders: def.requiredPlaceholders,
+        template: {
+          variant: def.variant,
+          subject: snap.subject || def.subject,
+          preheader: snap.preheader || def.preheader,
+          eyebrow: snap.eyebrow ?? def.eyebrow,
+          heading: snap.heading || def.heading,
+          greeting: snap.greeting || def.greeting,
+          bodyHtml: snap.bodyHtml || def.bodyHtml,
+          bodyText: snap.bodyText || def.bodyText,
+          infoPanelTitle: snap.infoPanelTitle ?? def.infoPanelTitle,
+          infoPanelBody: snap.infoPanelBody ?? def.infoPanelBody,
+          footerText: snap.footerText || def.footerText,
+          ctaLabel: snap.ctaLabel || def.ctaLabel,
+          ctaUrlTemplate: snap.ctaUrlTemplate || def.ctaUrlTemplate,
+          bannerKey: snap.bannerKey ?? def.bannerKey ?? null,
+          securityOrHelpNote: def.securityOrHelpNote,
+          unsubscribeLabel: def.unsubscribeLabel,
+        },
+      };
+    }
   }
 
   if (def.defaultStatus !== 'published') {

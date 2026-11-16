@@ -17,6 +17,7 @@ const SendLeadInvitesSchema = z.object({
   templateType: z
     .enum(['pakistan_launch_invitation', 'survey_invitation'])
     .default('pakistan_launch_invitation'),
+  allowResend: z.boolean().optional().default(false),
   contacts: z.array(LeadContactSchema).min(1, 'At least one contact is required.').max(50, 'Maximum 50 contacts per batch.'),
 });
 
@@ -118,9 +119,21 @@ export async function POST(req: Request) {
       }
 
       const unsubscribeUrl = `${surveyUrl}?optOut=${encodeURIComponent(contact.email.trim())}`;
+      const baseKey = `admin-lead-invite:${campaign.id}:${parsed.templateType}:${normalized}`;
+      const businessKey = parsed.allowResend ? `${baseKey}:${Date.now()}` : baseKey;
+
+      if (!parsed.allowResend) {
+        // Allow retrying if a previous attempt permanently failed
+        await db.emailOutbox.deleteMany({
+          where: {
+            businessKey: baseKey,
+            status: 'permanently_failed',
+          },
+        });
+      }
 
       const dispatch = await enqueueAndSendEmail({
-        businessKey: `admin-lead-invite:${campaign.id}:${parsed.templateType}:${normalized}`,
+        businessKey,
         emailType: parsed.templateType,
         recipientEmail: contact.email.trim(),
         recipientName: contact.name?.trim() || '',
