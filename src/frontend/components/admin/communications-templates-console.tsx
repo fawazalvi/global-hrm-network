@@ -34,6 +34,7 @@ import { useToast } from '@/frontend/hooks/use-toast';
 export default function CommunicationsTemplatesConsole() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>('library');
   const [templates, setTemplates] = useState<any[]>([]);
   const [variables, setVariables] = useState<Array<{ key: string; description: string }>>([]);
   const [selectedType, setSelectedType] = useState<string>('pakistan_launch_invitation');
@@ -100,10 +101,13 @@ export default function CommunicationsTemplatesConsole() {
     });
   }, [templates, searchQuery, classificationFilter, statusFilter]);
 
-  const handleSelectTemplate = (t: any) => {
+  const handleSelectTemplate = (t: any, switchToEditor = true) => {
     setSelectedType(t.emailType);
     setDraft({ ...t });
     setPreview(t.preview);
+    if (switchToEditor) {
+      setActiveTab('editor');
+    }
   };
 
   const handleRefreshPreview = async (customDraft?: any) => {
@@ -310,7 +314,7 @@ export default function CommunicationsTemplatesConsole() {
         </div>
       </div>
 
-      <Tabs defaultValue="library" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="library">1. Template Library ({templates.length})</TabsTrigger>
           <TabsTrigger value="editor">2. Editor &amp; Live Preview</TabsTrigger>
