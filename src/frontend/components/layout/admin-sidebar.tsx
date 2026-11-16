@@ -89,6 +89,7 @@ export default function AdminSidebar({ logoUrl }: AdminSidebarProps) {
       title: "Surveys & Research",
       items: [
         { href: "/admin/surveys/submissions", icon: ClipboardList, label: "Survey Submissions" },
+        { href: "/admin/surveys/invite", icon: Send, label: "Send Survey Invite" },
         { href: "/admin/survey-settings/choices", icon: SlidersHorizontal, label: "Survey Settings" },
       ],
     },
