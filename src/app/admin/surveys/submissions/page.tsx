@@ -6,6 +6,7 @@ import {
   Loader2,
   RefreshCw,
   Search,
+  Trash2,
 } from 'lucide-react';
 import {
   Card,
@@ -36,6 +37,7 @@ export default function SurveySubmissionsAdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'verified' | 'pending'>('all');
   const [selected, setSelected] = useState<any>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadSubmissions = async () => {
     setLoading(true);
@@ -60,6 +62,40 @@ export default function SurveySubmissionsAdminPage() {
   useEffect(() => {
     loadSubmissions();
   }, []);
+
+  const handleDelete = async (submission: any) => {
+    const confirmed = window.confirm(
+      `Delete survey submission from ${submission.preferredName} (${submission.officialEmail})? This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(submission.id);
+    try {
+      const res = await fetch(
+        `/api/admin/surveys/pakistan-banking-map/submissions/${encodeURIComponent(submission.id)}`,
+        { method: 'DELETE' }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete submission.');
+
+      toast({
+        title: 'Submission Deleted',
+        description: `Removed survey entry for ${submission.officialEmail}.`,
+      });
+      if (selected?.id === submission.id) {
+        setSelected(null);
+      }
+      await loadSubmissions();
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Delete Failed',
+        description: err.message,
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -182,9 +218,24 @@ export default function SurveySubmissionsAdminPage() {
                         {new Date(s.submittedAt).toLocaleString()}
                       </TableCell>
                       <TableCell>
-                        <Button size="sm" variant="ghost" onClick={() => setSelected(s)}>
-                          View
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button size="sm" variant="ghost" onClick={() => setSelected(s)}>
+                            View
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive"
+                            disabled={deletingId === s.id}
+                            onClick={() => handleDelete(s)}
+                          >
+                            {deletingId === s.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
