@@ -212,6 +212,7 @@ model Institution {
   emailDomains         InstitutionEmailDomain[]
   participants         SurveyParticipant[]
   submissions          SurveySubmission[]
+  leadContacts         LeadContact[]
 
   @@index([isActive, isSelectable, isHistorical])
   @@index([categoryId, displayOrder])
@@ -260,6 +261,7 @@ model SurveyCampaign {
   referralInvitations   ReferralInvitation[]
   institutionCategories CampaignInstitutionCategory[]
   choiceAvailability    CampaignChoiceAvailability[]
+  leadMemberships       LeadCampaignMembership[]
 
   @@index([status])
 }
@@ -562,6 +564,7 @@ model EmailSuppression {
 model SurveyLeadInvite {
   id                  String    @id @default(uuid())
   campaignId          String
+  leadId              String?
   outboxId            String?
   recipientEmail      String
   normalizedRecipient String
@@ -575,9 +578,71 @@ model SurveyLeadInvite {
   submissionId        String?
   createdAt           DateTime  @default(now())
 
+  lead LeadContact? @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
   @@index([campaignId, normalizedRecipient])
+  @@index([leadId])
   @@index([outboxId])
   @@index([expiresAt])
+}
+
+model LeadContact {
+  id              String    @id @default(uuid())
+  email           String
+  normalizedEmail String    @unique
+  fullName        String?
+  institutionId   String?
+  institutionName String?
+  designation     String?
+  source          String    @default("manual") // "manual" | "csv_import" | "referral" | "survey_submission" | "legacy_invite"
+  sourceUrl       String?
+  tagsJson        String    @default("[]") @db.Text
+  notes           String?   @db.Text
+  isArchived      Boolean   @default(false)
+  archivedAt      DateTime?
+  createdByUserId String?
+  updatedByUserId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  institution         Institution?             @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  campaignMemberships LeadCampaignMembership[]
+  invites             SurveyLeadInvite[]
+  auditLogs           LeadAuditLog[]
+
+  @@index([isArchived, createdAt])
+  @@index([institutionId])
+  @@index([source])
+}
+
+model LeadCampaignMembership {
+  id               String   @id @default(uuid())
+  leadId           String
+  campaignId       String
+  assignedByUserId String?
+  assignedAt       DateTime @default(now())
+
+  lead     LeadContact    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  campaign SurveyCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, campaignId])
+  @@index([campaignId])
+}
+
+model LeadAuditLog {
+  id          String   @id @default(uuid())
+  leadId      String?
+  actorUserId String?
+  actorEmail  String?
+  action      String   // "created" | "updated" | "imported" | "exported" | "suppressed" | "unsuppressed" | "archived" | "unarchived" | "invite_queued" | "invite_resent" | "invite_cancelled" | "tags_updated" | "campaign_assigned"
+  summary     String
+  detailsJson String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  lead LeadContact? @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([leadId, createdAt])
+  @@index([createdAt])
 }
 
 model EmailConfig {
