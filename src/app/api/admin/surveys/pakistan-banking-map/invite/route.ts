@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { z, ZodError } from 'zod';
 import { db } from '@/backend/db';
@@ -18,15 +19,23 @@ const SendLeadInvitesSchema = z.object({
     .enum(['pakistan_launch_invitation', 'survey_invitation'])
     .default('pakistan_launch_invitation'),
   allowResend: z.boolean().optional().default(false),
-  contacts: z.array(LeadContactSchema).min(1, 'At least one contact is required.').max(50, 'Maximum 50 contacts per batch.'),
+  expiryDays: z.coerce.number().int().min(1).max(365).default(14),
+  contacts: z
+    .array(LeadContactSchema)
+    .min(1, 'At least one contact is required.')
+    .max(50, 'Maximum 50 contacts per batch.'),
 });
+
+function hashInviteToken(rawToken: string): string {
+  return crypto.createHash('sha256').update(rawToken).digest('hex');
+}
 
 export async function GET() {
   const authCheck = await requireAdminSession();
   if (!authCheck.ok) return authCheck.response;
 
   try {
-    const [campaign, recentInvites] = await Promise.all([
+    const [campaign, recentOutbox, leadInvites] = await Promise.all([
       db.surveyCampaign.findUnique({
         where: { slug: PAKISTAN_BANKING_MAP_CAMPAIGN_SLUG },
         select: { id: true, slug: true, title: true, status: true },
@@ -49,7 +58,46 @@ export async function GET() {
           createdAt: true,
         },
       }),
+      db.surveyLeadInvite.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+        select: {
+          id: true,
+          outboxId: true,
+          normalizedRecipient: true,
+          expiresAt: true,
+          openedAt: true,
+          lastOpenedAt: true,
+          openCount: true,
+          completedAt: true,
+          createdAt: true,
+        },
+      }),
     ]);
+
+    const inviteByOutbox = new Map<string, (typeof leadInvites)[number]>();
+    for (const inv of leadInvites) {
+      if (inv.outboxId && !inviteByOutbox.has(inv.outboxId)) {
+        inviteByOutbox.set(inv.outboxId, inv);
+      }
+    }
+
+    const recentInvites = recentOutbox.map((row) => {
+      const tracked = inviteByOutbox.get(row.id) || null;
+      return {
+        ...row,
+        tracking: tracked
+          ? {
+              expiresAt: tracked.expiresAt.toISOString(),
+              isExpired: tracked.expiresAt < new Date(),
+              openedAt: tracked.openedAt ? tracked.openedAt.toISOString() : null,
+              lastOpenedAt: tracked.lastOpenedAt ? tracked.lastOpenedAt.toISOString() : null,
+              openCount: tracked.openCount,
+              completedAt: tracked.completedAt ? tracked.completedAt.toISOString() : null,
+            }
+          : null,
+      };
+    });
 
     return NextResponse.json({ campaign, recentInvites });
   } catch (error: any) {
@@ -76,7 +124,8 @@ export async function POST(req: Request) {
     }
 
     const origin = resolveSiteOrigin(req);
-    const surveyUrl = `${origin}/surveys/pakistan-banking-map`;
+    const baseSurveyUrl = `${origin}/surveys/pakistan-banking-map`;
+    const expiresAt = new Date(Date.now() + parsed.expiryDays * 86_400_000);
 
     const seen = new Set<string>();
     const results: Array<{
@@ -118,12 +167,15 @@ export async function POST(req: Request) {
         continue;
       }
 
-      const unsubscribeUrl = `${surveyUrl}?optOut=${encodeURIComponent(contact.email.trim())}`;
+      const rawToken = crypto.randomBytes(24).toString('base64url');
+      const tokenHash = hashInviteToken(rawToken);
+      const trackedSurveyUrl = `${baseSurveyUrl}?invite=${encodeURIComponent(rawToken)}`;
+      const unsubscribeUrl = `${baseSurveyUrl}?optOut=${encodeURIComponent(contact.email.trim())}`;
+
       const baseKey = `admin-lead-invite:${campaign.id}:${parsed.templateType}:${normalized}`;
       const businessKey = parsed.allowResend ? `${baseKey}:${Date.now()}` : baseKey;
 
       if (!parsed.allowResend) {
-        // Allow retrying if a previous attempt permanently failed
         await db.emailOutbox.deleteMany({
           where: {
             businessKey: baseKey,
@@ -138,14 +190,31 @@ export async function POST(req: Request) {
         recipientEmail: contact.email.trim(),
         recipientName: contact.name?.trim() || '',
         campaignId: campaign.id,
+        containsSensitiveLink: true,
+        payloadExpiresAt: expiresAt,
         templateData: {
           preferred_name: contact.name?.trim() || '',
           institution_name: contact.institution?.trim() || '',
           survey_title: campaign.title,
-          survey_url: surveyUrl,
+          survey_url: trackedSurveyUrl,
           unsubscribe_url: unsubscribeUrl,
+          expiry_minutes: String(parsed.expiryDays * 1440),
         },
       });
+
+      if (dispatch.outboxId) {
+        await db.surveyLeadInvite.create({
+          data: {
+            campaignId: campaign.id,
+            outboxId: dispatch.outboxId,
+            recipientEmail: contact.email.trim(),
+            normalizedRecipient: normalized,
+            recipientName: contact.name?.trim() || null,
+            tokenHash,
+            expiresAt,
+          },
+        });
+      }
 
       results.push({
         email: contact.email,
@@ -157,7 +226,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      surveyUrl,
+      surveyUrl: baseSurveyUrl,
+      expiresAt: expiresAt.toISOString(),
       results,
     });
   } catch (error: any) {

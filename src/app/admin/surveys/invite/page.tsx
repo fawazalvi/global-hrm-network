@@ -51,6 +51,7 @@ export default function SendSurveyInviteAdminPage() {
 
   const [sending, setSending] = useState(false);
   const [allowResend, setAllowResend] = useState(false);
+  const [expiryDays, setExpiryDays] = useState(14);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [dispatchResults, setDispatchResults] = useState<any[]>([]);
   const [recentInvites, setRecentInvites] = useState<any[]>([]);
@@ -127,7 +128,7 @@ export default function SendSurveyInviteAdminPage() {
       const res = await fetch('/api/admin/surveys/pakistan-banking-map/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ templateType, allowResend, contacts }),
+        body: JSON.stringify({ templateType, allowResend, expiryDays, contacts }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send survey invitations.');
@@ -168,6 +169,7 @@ export default function SendSurveyInviteAdminPage() {
               ? 'survey_invitation'
               : 'pakistan_launch_invitation',
           allowResend: true,
+          expiryDays,
           contacts: [
             {
               email: inv.recipientEmail,
@@ -219,21 +221,34 @@ export default function SendSurveyInviteAdminPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="templateType">Email Template</Label>
-              <select
-                id="templateType"
-                value={templateType}
-                onChange={(e) => setTemplateType(e.target.value as any)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="pakistan_launch_invitation">
-                  Pakistan Launch Campaign Invitation (Branded Poster Banner)
-                </option>
-                <option value="survey_invitation">
-                  Standard Survey Invitation
-                </option>
-              </select>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="templateType">Email Template</Label>
+                <select
+                  id="templateType"
+                  value={templateType}
+                  onChange={(e) => setTemplateType(e.target.value as any)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="pakistan_launch_invitation">
+                    Pakistan Launch Campaign Invitation (Branded Poster Banner)
+                  </option>
+                  <option value="survey_invitation">
+                    Standard Survey Invitation
+                  </option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="expiryDays">Invitation Expiry (Days)</Label>
+                <Input
+                  id="expiryDays"
+                  type="number"
+                  min={1}
+                  max={365}
+                  value={expiryDays}
+                  onChange={(e) => setExpiryDays(Math.max(1, Math.min(365, Number(e.target.value) || 14)))}
+                />
+              </div>
             </div>
 
             <Tabs value={mode} onValueChange={(v) => setMode(v as 'single' | 'bulk')}>
@@ -364,6 +379,8 @@ export default function SendSurveyInviteAdminPage() {
                 <TableHead>Recipient</TableHead>
                 <TableHead>Template</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Survey Opened</TableHead>
+                <TableHead>Expires</TableHead>
                 <TableHead>Details</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
@@ -371,7 +388,7 @@ export default function SendSurveyInviteAdminPage() {
             <TableBody>
               {recentInvites.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center text-muted-foreground">
                     No lead invitations sent yet.
                   </TableCell>
                 </TableRow>
@@ -401,7 +418,37 @@ export default function SendSurveyInviteAdminPage() {
                         {inv.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground max-w-[260px] truncate">
+                    <TableCell className="text-xs">
+                      {!inv.tracking ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : inv.tracking.completedAt ? (
+                        <div className="space-y-0.5">
+                          <Badge>Completed</Badge>
+                          <div className="text-[11px] text-muted-foreground">
+                            Opened {inv.tracking.openCount}x
+                          </div>
+                        </div>
+                      ) : inv.tracking.openedAt ? (
+                        <div className="space-y-0.5">
+                          <Badge variant="default">Opened ({inv.tracking.openCount}x)</Badge>
+                          <div className="text-[11px] text-muted-foreground">
+                            {new Date(inv.tracking.openedAt).toLocaleString()}
+                          </div>
+                        </div>
+                      ) : (
+                        <Badge variant="outline">Not opened</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">
+                      {!inv.tracking ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : inv.tracking.isExpired ? (
+                        <Badge variant="destructive">Expired</Badge>
+                      ) : (
+                        <span>{new Date(inv.tracking.expiresAt).toLocaleDateString()}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">
                       {inv.lastError || inv.smtpResponse || '—'}
                     </TableCell>
                     <TableCell>

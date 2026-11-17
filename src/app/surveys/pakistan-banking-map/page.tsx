@@ -130,6 +130,8 @@ function PakistanBankingMapSurveyContent() {
   const [referralCode, setReferralCode] = useState('');
   const [referralValid, setReferralValid] = useState(false);
   const [skipReferralAttribution, setSkipReferralAttribution] = useState(false);
+  const [leadInviteToken, setLeadInviteToken] = useState('');
+  const [leadInviteExpiredMessage, setLeadInviteExpiredMessage] = useState<string | null>(null);
 
   // Separate consents
   const [participationConsent, setParticipationConsent] = useState(false);
@@ -158,6 +160,22 @@ function PakistanBankingMapSurveyContent() {
         .catch(() => {
           setReferralValid(false);
         });
+    }
+
+    const inviteParam = searchParams.get('invite');
+    if (inviteParam && inviteParam.trim()) {
+      const token = inviteParam.trim();
+      setLeadInviteToken(token);
+      fetch(`/api/surveys/pakistan-banking-map/lead-invite?token=${encodeURIComponent(token)}`)
+        .then(async (res) => {
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok && (data.status === 'expired' || data.status === 'invalid')) {
+            setLeadInviteExpiredMessage(
+              data.message || 'This survey invitation link has expired or is invalid.'
+            );
+          }
+        })
+        .catch(() => {});
     }
   }, [searchParams]);
 
@@ -392,6 +410,7 @@ function PakistanBankingMapSurveyContent() {
           participationConsent,
           communicationsConsent,
           referralCode: skipReferralAttribution ? null : referralCode || null,
+          inviteToken: leadInviteToken || undefined,
         }),
       });
 
@@ -503,7 +522,29 @@ function PakistanBankingMapSurveyContent() {
               </div>
             )}
 
-            {submissionSuccess ? (
+            {leadInviteExpiredMessage ? (
+              <Card className="border-red-200 shadow-lg bg-white">
+                <CardHeader className="text-center pb-4">
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 border border-red-200">
+                    <AlertCircle className="h-7 w-7 text-red-600" />
+                  </div>
+                  <CardTitle className="text-2xl text-ghrm-navy">
+                    Invitation Link Unavailable
+                  </CardTitle>
+                  <CardDescription className="text-base mt-2 text-red-700">
+                    {leadInviteExpiredMessage}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center text-sm text-ghrm-text-secondary space-y-4">
+                  <p>
+                    Please contact the Global HRM Network administrator to request a fresh survey invitation link.
+                  </p>
+                  <Button asChild variant="outline">
+                    <Link href="/">Return to Home</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : submissionSuccess ? (
               <Card className="border-ghrm-border shadow-lg bg-white">
                 <CardHeader className="text-center pb-4">
                   <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-50 border border-green-200">

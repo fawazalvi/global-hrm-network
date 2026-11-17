@@ -1,6 +1,7 @@
+import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
-import { isDatabaseUnavailableError } from '@/backend/db';
+import { db, isDatabaseUnavailableError } from '@/backend/db';
 import {
   hashIpAddress,
   PAKISTAN_BANKING_MAP_CAMPAIGN_SLUG,
@@ -18,6 +19,20 @@ export async function POST(req: Request) {
     }
 
     const validated = SurveySubmissionInputSchema.parse(body);
+    const inviteToken = typeof (body as any).inviteToken === 'string' ? (body as any).inviteToken.trim() : '';
+
+    let matchedInviteId: string | null = null;
+    if (inviteToken) {
+      const tokenHash = crypto.createHash('sha256').update(inviteToken).digest('hex');
+      const invite = await db.surveyLeadInvite.findUnique({ where: { tokenHash } });
+      if (invite && invite.expiresAt < new Date()) {
+        return NextResponse.json(
+          { error: 'This survey invitation link has expired. Please request a new invitation.' },
+          { status: 410 }
+        );
+      }
+      if (invite) matchedInviteId = invite.id;
+    }
 
     const forwardedFor = req.headers.get('x-forwarded-for');
     const clientIp = forwardedFor ? forwardedFor.split(',')[0].trim() : null;
@@ -28,6 +43,16 @@ export async function POST(req: Request) {
       validated,
       ipHash
     );
+
+    if (matchedInviteId) {
+      await db.surveyLeadInvite.update({
+        where: { id: matchedInviteId },
+        data: {
+          completedAt: new Date(),
+          submissionId: result.submissionId,
+        },
+      }).catch(() => {});
+    }
 
     const origin = resolveSiteOrigin(req);
     const verificationUrl = `${origin}/surveys/pakistan-banking-map/verify?token=${encodeURIComponent(result.rawVerificationToken)}`;

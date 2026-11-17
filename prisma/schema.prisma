@@ -559,6 +559,27 @@ model EmailSuppression {
   suppressedAt    DateTime @default(now())
 }
 
+model SurveyLeadInvite {
+  id                  String    @id @default(uuid())
+  campaignId          String
+  outboxId            String?
+  recipientEmail      String
+  normalizedRecipient String
+  recipientName       String?
+  tokenHash           String    @unique
+  expiresAt           DateTime
+  openedAt            DateTime?
+  lastOpenedAt        DateTime?
+  openCount           Int       @default(0)
+  completedAt         DateTime?
+  submissionId        String?
+  createdAt           DateTime  @default(now())
+
+  @@index([campaignId, normalizedRecipient])
+  @@index([outboxId])
+  @@index([expiresAt])
+}
+
 model EmailConfig {
   id                      String    @id @default(uuid())
   status                  String    @default("draft") // "draft" | "active" | "archived"
