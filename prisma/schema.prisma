@@ -881,3 +881,45 @@ model InboundEmailMessage {
   @@index([inReplyTo])
   @@index([relatedOutboxId])
 }
+
+model AiApiKey {
+  id              String    @id @default(uuid())
+  provider        String    @default("groq") // "groq" | "openai" | "anthropic" | "gemini" | "custom"
+  label           String
+  encryptedKey    String    @db.Text
+  keyPreview      String
+  defaultModel    String?
+  baseUrl         String?
+  isActive        Boolean   @default(true)
+  isDefault       Boolean   @default(false)
+  lastTestedAt    DateTime?
+  lastTestStatus  String?   // "ok" | "error"
+  lastTestMessage String?   @db.Text
+  lastUsedAt      DateTime?
+  createdByUserId String?
+  updatedByUserId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  auditLogs AiApiKeyAuditLog[]
+
+  @@index([provider, isActive])
+  @@index([provider, isDefault])
+}
+
+model AiApiKeyAuditLog {
+  id          String   @id @default(uuid())
+  apiKeyId    String?
+  provider    String
+  label       String
+  actorUserId String?
+  actorEmail  String?
+  action      String   // "created" | "updated" | "rotated" | "activated" | "deactivated" | "set_default" | "tested" | "deleted"
+  summary     String
+  createdAt   DateTime @default(now())
+
+  apiKey AiApiKey? @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+
+  @@index([apiKeyId, createdAt])
+  @@index([createdAt])
+}

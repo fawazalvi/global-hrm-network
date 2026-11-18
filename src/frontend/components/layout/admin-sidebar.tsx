@@ -4,9 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   Bell,
+  Bot,
   ClipboardList,
   FileText,
   Home,
+  KeyRound,
   Mail,
   Palette,
   Send,
@@ -102,8 +104,10 @@ export default function AdminSidebar({ logoUrl }: AdminSidebarProps) {
       ],
     },
     {
-      title: "Appearance",
+      title: "Integrations & Appearance",
       items: [
+        { href: "/admin/settings/ai-keys", icon: KeyRound, label: "AI & API Keys" },
+        { href: "/admin/test-ai", icon: Bot, label: "Test Groq AI" },
         { href: "/admin/theme", icon: Palette, label: "Theme & Logo" },
       ],
     },
